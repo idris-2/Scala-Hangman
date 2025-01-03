@@ -1,19 +1,9 @@
-import scala.io.StdIn
+import scala.io.{Source, StdIn}
 import scala.util.Random
 
 object HangmanGame {
-  // List of predefined words
-  val wordList: List[String] = List("scala", "functional", "programming", "developer", "software")
-
   // Hangman ASCII art
   val hangmanStages: List[String] = List(
-    """
-      |
-      |
-      |
-      |
-      |
-    """,
     """
       |-----
       |
@@ -91,12 +81,22 @@ object HangmanGame {
     val playerName = StdIn.readLine()
     println(s"Hello, $playerName! Starting a new game...")
 
-    val word = getRandomWord()
+    val word = getRandomWord("word_list.txt") // Specify the file path
     playGame(word, playerName)
   }
 
-  def getRandomWord(): String = {
-    wordList(Random.nextInt(wordList.length))
+  def getRandomWord(filePath: String): String = {
+    try {
+      val source = Source.fromFile(filePath)
+      val words = source.getLines().filter(_.length > 5).toList // Only include words longer than 5 letters
+      source.close()
+      if (words.nonEmpty) words(Random.nextInt(words.length))
+      else throw new Exception("Word list is empty!")
+    } catch {
+      case ex: Exception =>
+        println(s"Error loading words from file: ${ex.getMessage}")
+        "default" // Fallback word in case of error
+    }
   }
 
   def playGame(word: String, playerName: String): Unit = {
