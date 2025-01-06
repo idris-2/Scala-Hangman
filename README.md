@@ -1,3 +1,2 @@
 # Scala-Hangman
-Hangman mad in Scala OOP language.
-Testing changes
+Hangman made in Scala OOP language.
