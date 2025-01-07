@@ -71,17 +71,19 @@ object HangmanGame {
     while (running) {
       println("\nChoose an option:")
       println("1. Start a new game")
-      println("2. Load saved game")
-      println("3. View scoreboard")
-      println("4. Exit")
+      println("2. Start a multiplayer game")
+      println("3. Load saved game")
+      println("4. View scoreboard")
+      println("5. Exit")
 
       StdIn.readLine() match {
         case "1" =>
           deleteSaveFile()
           startNewGame()
-        case "2" => loadSavedGame()
-        case "3" => displayScoreboard()
-        case "4" =>
+        case "2" => multiplayerGame()
+        case "3" => loadSavedGame()
+        case "4" => displayScoreboard()
+        case "5" =>
           println("Goodbye!")
           running = false
         case _ => println("Invalid option. Try again.")
@@ -101,7 +103,7 @@ object HangmanGame {
       println("If you proceed, your score will be reset to zero.")
       println("Do you want to use a different name? (yes/no)")
       val choice = StdIn.readLine().toLowerCase
-      if (choice == "yes") {
+      if (choice == "yes" || choice == "y") {
         println("Enter a new name:")
         startNewGame()
         return
@@ -339,4 +341,126 @@ object HangmanGame {
     }
     println()
   }
+  
+  def multiplayerGame(): Unit = {
+    println("Welcome to Multiplayer Hangman!")
+    
+    println("Player 1, enter your name:")
+    val player1 = StdIn.readLine()
+    
+    println("Player 2, enter your name:")
+    val player2 = StdIn.readLine()
+    
+    var player1Score = 0
+    var player2Score = 0
+    var keepPlaying = true
+  
+    while (keepPlaying) {
+      println(s"$player1, enter a word for $player2 to guess (must be longer than 5 characters):")
+      val word1 = getValidWord()
+      clearScreen()
+      println(s"$player2, it's your turn to guess!")
+      val result1 = playMultiplayerRound(word1, player2)
+      player2Score += result1._1
+      player1Score += result1._2
+  
+      println(s"\nScores after this round:")
+      println(s"$player1: $player1Score points")
+      println(s"$player2: $player2Score points")
+      
+      println("\nDo you want to play another round? (yes/no)?")
+      val input = StdIn.readLine().toLowerCase
+      keepPlaying = input == "yes" || input == "y"
+  
+      if (keepPlaying) {
+        println(s"$player2, enter a word for $player1 to guess (must be longer than 5 characters):")
+        val word2 = getValidWord()
+        clearScreen()
+        println(s"$player1, it's your turn to guess!")
+        val result2 = playMultiplayerRound(word2, player1)
+        player1Score += result2._1
+        player2Score += result2._2
+  
+        println(s"\nScores after this round:")
+        println(s"$player1: $player1Score points")
+        println(s"$player2: $player2Score points")
+        
+        println("\nDo you want to play another round? (yes/no)?")
+        val input = StdIn.readLine().toLowerCase
+        keepPlaying = input == "yes" || input == "y"
+      }
+    }
+  
+    println("\nThanks for playing Multiplayer Hangman!")
+    println(s"Final Scores:")
+    println(s"$player1: $player1Score points")
+    println(s"$player2: $player2Score points")
+  }
+  
+  def getValidWord(): String = {
+    var word = ""
+    do {
+      word = StdIn.readLine()
+      if (word.length <= 5) println("Word must be longer than 5 characters. Try again:")
+    } while (word.length <= 5)
+    word.toLowerCase.trim
+  }
+  
+  def isWindows: Boolean = {
+    System.getProperty("os.name").toLowerCase.contains("win")
+  }
+  
+  def clearScreen(): Unit = {
+    if (isWindows) {
+      // Use "cls" command for Windows
+      new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor()
+    } else {
+      // Use "clear" command for Linux/Mac
+      import sys.process._
+      "clear".!
+    }
+  }  
+  
+  def playMultiplayerRound(word: String, playerName: String): (Int, Int) = {
+    val wordState = Array.fill(word.length)('_')
+    var attemptsLeft = 6
+    var guessedLetters = Set.empty[Char]
+    var guessingScore = 0
+  
+    while (attemptsLeft > 0 && wordState.contains('_')) {
+      println("\n" + hangmanStages(6 - attemptsLeft))
+      println("Current word: " + wordState.mkString(" "))
+      println(s"Guessed letters: ${guessedLetters.mkString(", ")}")
+      println(s"Attempts left: $attemptsLeft")
+      println("Guess a letter:")
+  
+      val guess = StdIn.readLine().headOption.getOrElse(' ')
+      if (guess == '|') {
+        println("Nice try nerd.")
+      } else if (guessedLetters.contains(guess)) {
+        println("You already guessed that letter!")
+      } else {
+        guessedLetters += guess
+        if (word.contains(guess)) {
+          for (i <- word.indices if word(i) == guess) {
+            wordState(i) = guess
+            guessingScore += 10
+          }
+          println(s"Good guess!")
+        } else {
+          attemptsLeft -= 1
+          println(s"Wrong guess!")
+        }
+      }
+    }
+  
+    if (!wordState.contains('_')) {
+      println(s"Congratulations, $playerName! You guessed the word: $word")
+      (guessingScore + 50, 0) // Guesser gets bonus points for guessing the word
+    } else {
+      println(hangmanStages.last)
+      println(s"Game over! The word was: $word")
+      (0, 50) // Word giver gets points for a failed guess
+    }
+  }  
 }
