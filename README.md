@@ -34,7 +34,7 @@ This project is a text-based implementation of the classic Hangman game written 
 
 ### **Clone the Repository**
 ```bash
-git clone https://github.com/yourusername/scala-hangman.git
+git clone https://github.com/idris-2/Scala-Hangman.git
 cd scala-hangman
 ```
 
@@ -117,15 +117,3 @@ The program automatically detects the OS and uses the appropriate command to cle
 
 Feel free to fork the repository and submit pull requests for any improvements or bug fixes. Contributions are always welcome!
 
----
-
-## **License**
-
-This project is licensed under the MIT License. See the `LICENSE` file for more details.
-
----
-
-## **Acknowledgments**
-
-- ASCII art inspired by various online sources.
-- Functional programming concepts learned from the book *Functional Programming in Scala*.
